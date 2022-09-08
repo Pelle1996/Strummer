@@ -1,0 +1,200 @@
+on init 
+
+set_ui_height_px(500)
+{prima corda}
+declare ui_button $1_E1
+declare ui_button $1_F1
+declare ui_button $1_Fd1
+declare ui_button $1_G1
+declare ui_button $1_Gd1
+declare ui_button $1_A1
+
+move_control_px($1_E1, 0, 0)
+move_control_px($1_F1, 50, 0)
+move_control_px($1_Fd1, 100, 0)
+move_control_px($1_G1, 150, 0)
+move_control_px($1_Gd1, 200, 0)
+move_control_px($1_A1, 250, 0)
+{seconda corda}
+declare ui_button $2_A1
+declare ui_button $2_Ad1
+declare ui_button $2_B1
+declare ui_button $2_C2
+declare ui_button $2_Cd2
+declare ui_button $2_D2
+move_control_px($2_A1, 0, 70)
+move_control_px($2_Ad1, 50, 70)
+move_control_px($2_B1, 100, 70)
+move_control_px($2_C2, 150, 70)
+move_control_px($2_Cd2, 200, 70)
+move_control_px($2_D2, 250, 70)
+{terza corda}
+declare ui_button $3_D2
+declare ui_button $3_Dd2
+declare ui_button $3_E2
+declare ui_button $3_F2
+declare ui_button $3_Fd2
+declare ui_button $3_G2
+move_control_px($3_D2, 0, 140)
+move_control_px($3_Dd2, 50, 140)
+move_control_px($3_E2, 100, 140)
+move_control_px($3_F2, 150, 140)
+move_control_px($3_Fd2, 200, 140)
+move_control_px($3_G2, 250, 140)
+
+declare %string1[6] := (0,0,0,0,0,0)
+declare %string2[6] := (0,0,0,0,0,0)
+declare %string3[6] := (0,0,0,0,0,0)
+
+set_key_color(2, $KEY_COLOR_GREEN)
+
+    declare	$count1 := 6
+	declare $count2 := 6
+	declare $count3 := 6
+
+	declare ui_knob $time(10,100,1)
+	move_control_px($time, 200,200)
+
+	declare ui_knob $shift(0,17,1)
+	move_control_px($shift, 200,300)
+{--------}
+
+
+
+{questo bottone mi serve per salvare l'accordo disegnato su un keyswitch}
+  declare ui_button $store
+	move_control_px($store, 300,300)
+
+	  declare ui_button $edit
+	move_control_px($edit, 350,300)
+
+{Questo array contiene i vari accordi, ogni riga corrisponde a un tasto}
+
+  declare %chord_memory[12*3] := (... 
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0,...
+  	0, 0, 0)
+
+
+declare $current_key := 10
+declare $note_count
+declare $slot
+declare $chord_count
+
+declare $current_note
+
+  while($current_key<22)
+  	set_key_color($current_key, $KEY_COLOR_RED)
+  	inc($current_key)
+  end while
+make_perfview
+end on
+
+
+
+on note 
+
+message($EVENT_NOTE)
+{seleziono lo slot da editare}
+if($edit = 1 and in_range($EVENT_NOTE,10,21))
+
+message("sto editando l'accordo del tasto : " & $EVENT_NOTE)
+$current_note := $EVENT_NOTE
+end if
+
+
+if($EVENT_NOTE = 2 and $edit = 0)
+{nota corrispondente al primo slot}
+disallow_group($ALL_GROUPS)
+$current_key := 10 
+$chord_count := 0
+
+	while($current_key<22) 
+
+   $chord_count := 0{eseguo un ciclo e scorro i vari slot}
+
+			if(%KEY_DOWN[$current_key] = 1) {SE LA NOTA √® PREMUTA}
+
+    {CONTATORE DEL NUMERO DI TASTI}
+				while($chord_count < 3)
+
+					allow_group($chord_count)
+					play_note(%chord_memory[(($current_key-10)*3)+$chord_count],$EVENT_VELOCITY,0,-1)
+
+					{velocit√† della plettrata}
+					wait(1000*$time)
+         disallow_group($ALL_GROUPS)
+					inc($chord_count)
+       end while
+      end if
+		inc($current_key)
+	end while
+end if
+end on
+
+on ui_control($store)
+
+
+if($store = 1 and $edit = 1)
+{tasto selezionato fa corrispondere la prima cella dell'array}
+$slot := 0
+$note_count := 0
+
+ %string1[0] := 36*$1_E1
+
+  %string1[1] := 37*$1_F1
+   %string1[2] := 38*$1_Fd1
+    %string1[3] := 39*$1_G1
+     %string1[4] := 40*$1_Gd1
+      %string1[5] := 41*$1_A1
+     
+ %string2[0] := 41*$2_A1
+
+  %string2[1] := 42*$2_Ad1
+   %string2[2] := 43*$2_B1
+    %string2[3] := 44*$2_C2
+     %string2[4] := 45*$2_Cd2
+      %string2[5] := 46*$2_D2
+
+ %string3[0] := 46*$3_D2
+
+  %string3[1] := 47*$3_Dd2
+   %string3[2] := 48*$3_E2
+    %string3[3] := 49*$3_F2
+     %string3[4] := 50*$3_Fd2
+       %string3[5] := 51*$3_G2
+
+
+		while($note_count < 6)
+
+
+				if(%string1[$note_count] > 0)
+					%chord_memory[(($current_note-10)*3)] := %string1[$note_count]
+				end if
+
+				if(%string2[$note_count] > 0)
+					%chord_memory[(($current_note-10)*3)+1] := %string2[$note_count]
+				end if
+
+				if(%string3[$note_count] > 0)
+					%chord_memory[(($current_note-10)*3)+2] := %string3[$note_count]
+				end if
+
+			inc($note_count)
+
+
+		end while
+$store := 0
+end if
+$store := 0
+
+end on
